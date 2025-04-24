@@ -1,23 +1,24 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import DigitalTwinDashboard from './components/dashboard/DigitalTwinDashboard';
+import './styles/global.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="min-h-screen bg-gray-200 p-4">
+      <div className="max-w-7xl mx-auto">
+        <header className="py-4 mb-6">
+          <h1 className="text-3xl font-bold text-gray-900">Athlete Performance Dashboard</h1>
+          <p className="text-gray-600">Your personal digital twin for optimized training</p>
+        </header>
+        
+        <main>
+          <DigitalTwinDashboard />
+        </main>
+        
+        <footer className="mt-8 py-4 text-center text-gray-500 text-sm">
+          <p>Digital Twin Technology &copy; {new Date().getFullYear()}</p>
+        </footer>
+      </div>
     </div>
   );
 }
