@@ -20,9 +20,72 @@ export const useDigitalTwin = () => {
     simulationData,
     recommendations,
     cognitiveData,
+    cognitiveForecast,
+    cognitiveSimulation, 
     updateSimulation,
-    addToCalendar
+    addToCalendar,
+    updateCognitiveSimulation
   } = context;
+
+// Add function to analyze short-term cognitive projection (next 7 days)
+const analyzeShortTermForecast = () => {
+  if (!cognitiveForecast || cognitiveForecast.length === 0) return null;
+  
+  const sevenDayData = cognitiveForecast.slice(0, 7);
+  
+  // Find days with highest and lowest predicted performance
+  const bestDay = [...sevenDayData].sort((a, b) => b.predicted - a.predicted)[0];
+  const worstDay = [...sevenDayData].sort((a, b) => a.predicted - b.predicted)[0];
+  
+  // Calculate improvement rate
+  const startValue = sevenDayData[0].predicted;
+  const endValue = sevenDayData[sevenDayData.length - 1].predicted;
+  const improvementRate = ((endValue - startValue) / startValue) * 100;
+  
+  // Identify key impact factors
+  const averageSleepImpact = sevenDayData.reduce((sum, day) => sum + day.sleepImpact, 0) / sevenDayData.length;
+  const averageRecoveryImpact = sevenDayData.reduce((sum, day) => sum + day.recoveryImpact, 0) / sevenDayData.length;
+  const averageNutritionImpact = sevenDayData.reduce((sum, day) => sum + day.nutritionImpact, 0) / sevenDayData.length;
+  
+  // Determine top factor
+  const impacts = [
+    { name: 'Sleep', value: averageSleepImpact },
+    { name: 'Recovery', value: averageRecoveryImpact },
+    { name: 'Nutrition', value: averageNutritionImpact }
+  ];
+  
+  const topFactor = impacts.sort((a, b) => b.value - a.value)[0];
+  
+  return {
+    startPerformance: startValue,
+    endPerformance: endValue,
+    improvementRate: improvementRate.toFixed(1),
+    bestDay,
+    worstDay,
+    isPeakAhead: bestDay.day > 0,
+    topFactor
+  };
+};
+
+// Add function to analyze long-term cognitive projection (next 30 days)
+const analyzeLongTermForecast = () => {
+  // In a real implementation, this would analyze the full 30 days of forecast data
+  // For now, we'll just extend the 7-day analysis
+  
+  const shortTerm = analyzeShortTermForecast();
+  if (!shortTerm) return null;
+  
+  // Extrapolate the trend for longer term
+  const projectedImprovement = shortTerm.improvementRate * 4; // Simplified 30-day projection
+  
+  return {
+    ...shortTerm,
+    projectedImprovement: projectedImprovement.toFixed(1),
+    sustainabilityRisk: projectedImprovement > 50 ? 'High' : projectedImprovement > 25 ? 'Moderate' : 'Low',
+    estimatedPeak: Math.min(100, Math.round(shortTerm.endPerformance + (shortTerm.endPerformance - shortTerm.startPerformance))),
+    timeToOptimal: Math.ceil((85 - shortTerm.startPerformance) / ((shortTerm.endPerformance - shortTerm.startPerformance) / 7))
+  };
+};
 
   // Calculate status color based on readiness
   const getReadinessColor = () => {
@@ -109,17 +172,22 @@ export const useDigitalTwin = () => {
     simulationData,
     recommendations,
     cognitiveData,
+    cognitiveForecast,
+    cognitiveSimulation,
     
     // Derived data
     readinessColor: getReadinessColor(),
     recoveryTime: calculateRecoveryTime(),
     recoveryProjection,
     recommendedActions: getRecommendedActions(),
+    shortTermForecast: analyzeShortTermForecast(),
+    longTermForecast: analyzeLongTermForecast(),
     
     // Actions
     handleSleepChange,
     handleIntensityChange,
-    handleAddToCalendar
+    handleAddToCalendar,
+    updateCognitiveSimulation
   };
 };
 

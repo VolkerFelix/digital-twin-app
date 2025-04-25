@@ -98,6 +98,94 @@ const initialState = {
     { time: '18:00', label: '6 PM', cognitive: 70, focus: 75, memory: 65 },
     { time: '21:00', label: '9 PM', cognitive: 50, focus: 45, memory: 55 }
   ],
+  cognitiveForecast: [
+    { 
+      day: 0, 
+      date: '2025-04-25', 
+      label: 'Today', 
+      predicted: 65, 
+      confidenceLower: 60, 
+      confidenceUpper: 70,
+      sleepImpact: 8.5,
+      recoveryImpact: 12.0,
+      nutritionImpact: 6.5
+    },
+    { 
+      day: 1, 
+      date: '2025-04-26', 
+      label: 'Tomorrow', 
+      predicted: 68, 
+      confidenceLower: 62, 
+      confidenceUpper: 74,
+      sleepImpact: 9.0,
+      recoveryImpact: 10.5,
+      nutritionImpact: 7.0
+    },
+    { 
+      day: 2, 
+      date: '2025-04-27', 
+      label: 'Sun, Apr 27', 
+      predicted: 72, 
+      confidenceLower: 65, 
+      confidenceUpper: 79,
+      sleepImpact: 9.5,
+      recoveryImpact: 11.0,
+      nutritionImpact: 7.5
+    },
+    { 
+      day: 3, 
+      date: '2025-04-28', 
+      label: 'Mon, Apr 28', 
+      predicted: 75, 
+      confidenceLower: 67, 
+      confidenceUpper: 83,
+      sleepImpact: 10.0,
+      recoveryImpact: 12.5,
+      nutritionImpact: 8.0
+    },
+    { 
+      day: 4, 
+      date: '2025-04-29', 
+      label: 'Tue, Apr 29', 
+      predicted: 79, 
+      confidenceLower: 70, 
+      confidenceUpper: 88,
+      sleepImpact: 10.5,
+      recoveryImpact: 13.0,
+      nutritionImpact: 8.5
+    },
+    { 
+      day: 5, 
+      date: '2025-04-30', 
+      label: 'Wed, Apr 30', 
+      predicted: 82, 
+      confidenceLower: 72, 
+      confidenceUpper: 92,
+      sleepImpact: 11.0,
+      recoveryImpact: 13.5,
+      nutritionImpact: 9.0
+    },
+    { 
+      day: 6, 
+      date: '2025-05-01', 
+      label: 'Thu, May 1', 
+      predicted: 85, 
+      confidenceLower: 74, 
+      confidenceUpper: 96,
+      sleepImpact: 11.5,
+      recoveryImpact: 14.0,
+      nutritionImpact: 9.5
+    }
+  ],
+  
+  // Replace monthly trend with simulation parameters
+  cognitiveSimulation: {
+    sleepQuality: 7,
+    workoutIntensity: 70,
+    nutritionQuality: 75,
+    recoveryActivities: true,
+    mentalExercises: false
+  },
 };
 
 // Action types
@@ -106,7 +194,8 @@ const ActionTypes = {
   FETCH_DATA_SUCCESS: 'FETCH_DATA_SUCCESS',
   FETCH_DATA_ERROR: 'FETCH_DATA_ERROR',
   UPDATE_SIMULATION: 'UPDATE_SIMULATION',
-  ADD_TO_CALENDAR: 'ADD_TO_CALENDAR'
+  ADD_TO_CALENDAR: 'ADD_TO_CALENDAR',
+  UPDATE_COGNITIVE_SIMULATION: 'UPDATE_COGNITIVE_SIMULATION'
 };
 
 // Reducer
@@ -160,6 +249,24 @@ const digitalTwinReducer = (state, action) => {
           )
         }
       };
+    case ActionTypes.UPDATE_COGNITIVE_SIMULATION:
+        // Calculate current average cognitive score
+        const baselineScore = state.cognitiveData.reduce(
+          (sum, point) => sum + point.cognitive, 0
+        ) / state.cognitiveData.length;
+        
+        // Generate new forecast based on updated parameters
+        const newForecast = generateCognitiveForecast(
+          baselineScore, 
+          action.payload,
+          30 // Generate 30 days
+        );
+        
+        return {
+          ...state,
+          cognitiveSimulation: action.payload,
+          cognitiveForecast: newForecast
+        };
     default:
       return state;
   }
@@ -201,6 +308,57 @@ const calculateProjectedReadiness = (currentReadiness, sleepHours, workoutIntens
   return projectedReadiness;
 };
 
+// In DigitalTwinContext.js
+const generateCognitiveForecast = (currentScore, params, days = 30) => {
+    const forecast = [];
+    const today = new Date();
+    
+    let score = currentScore;
+    
+    for (let i = 0; i < days; i++) {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      
+      // Calculate daily impacts based on parameters
+      const sleepImpact = (params.sleepQuality - 6) * 1.5;
+      const workoutImpact = params.workoutIntensity > 80 
+        ? -((params.workoutIntensity - 80) * 0.1) 
+        : (params.workoutIntensity / 100) * 2;
+      const nutritionImpact = (params.nutritionQuality / 100) * 8;
+      const recoveryImpact = params.recoveryActivities ? 5 : 0;
+      const mentalImpact = params.mentalExercises ? 7 : 0;
+      
+      // Natural improvement rate (diminishing returns)
+      const naturalRate = Math.max(0, (90 - score) * 0.05);
+      
+      // Calculate total daily change
+      const dailyChange = sleepImpact + workoutImpact + nutritionImpact + 
+                        recoveryImpact + mentalImpact + naturalRate;
+      
+      // Update score with constraints
+      score = Math.min(100, Math.max(0, score + dailyChange));
+      
+      // Uncertainty increases with time
+      const uncertainty = 2 + (i * 1.5);
+      
+      forecast.push({
+        day: i,
+        date: date.toISOString().split('T')[0],
+        label: i === 0 ? 'Today' : 
+               i === 1 ? 'Tomorrow' : 
+               date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+        predicted: Math.round(score),
+        confidenceLower: Math.max(0, Math.round(score - uncertainty)),
+        confidenceUpper: Math.min(100, Math.round(score + uncertainty)),
+        sleepImpact,
+        recoveryImpact: recoveryImpact + (workoutImpact < 0 ? workoutImpact : 0),
+        nutritionImpact
+      });
+    }
+    
+    return forecast;
+  };
+
 // Create context
 const DigitalTwinContext = createContext();
 
@@ -221,6 +379,13 @@ export const DigitalTwinProvider = ({ children }) => {
       payload: { id: recommendationId }
     });
   };
+
+  const updateCognitiveSimulation = (simulationParams) => {
+    dispatch({
+      type: ActionTypes.UPDATE_COGNITIVE_SIMULATION,
+      payload: simulationParams
+    });
+  };
   
   // Mock initial data fetch when component mounts
   useEffect(() => {
@@ -233,7 +398,8 @@ export const DigitalTwinProvider = ({ children }) => {
       value={{
         ...state,
         updateSimulation,
-        addToCalendar
+        addToCalendar,
+        updateCognitiveSimulation
       }}
     >
       {children}
