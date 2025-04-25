@@ -19,6 +19,7 @@ export const useDigitalTwin = () => {
     bodyPartStatus,
     simulationData,
     recommendations,
+    cognitiveData,
     updateSimulation,
     addToCalendar
   } = context;
@@ -107,6 +108,7 @@ export const useDigitalTwin = () => {
     bodyPartStatus,
     simulationData,
     recommendations,
+    cognitiveData,
     
     // Derived data
     readinessColor: getReadinessColor(),

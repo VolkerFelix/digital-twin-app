@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { useDigitalTwin } from '../../hooks/useDigitalTwin';
 import maleAvatar from '../../assets/images/avatar-male.png';
+import femaleAvatar from '../../assets/images/avatar-female.png';
+
+const FEMALE = true;
+const avatar = FEMALE ? femaleAvatar : maleAvatar;
 
 const AvatarVisualization = () => {
   const { readinessScore, bodyPartStatus } = useDigitalTwin();
@@ -51,7 +55,7 @@ const AvatarVisualization = () => {
             <div className="relative h-full w-auto flex items-center justify-center">
               {/* Avatar image */}
               <img 
-                src={maleAvatar}
+                src={avatar}
                 alt="Avatar" 
                 className="h-full w-auto object-contain"
               />

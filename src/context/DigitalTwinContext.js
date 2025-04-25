@@ -13,12 +13,12 @@ const initialState = {
   },
   bodyPartStatus: [
     {
-        id: 'left-shoulder',
+        id: 'right-shoulder',
         name: 'Shoulder',
-        position: { x: 65, y: 25 },
+        position: { x: 34, y: 30 },
         status: 'optimal',
         readiness: 90,
-        tooltipPosition: 'right'
+        tooltipPosition: 'left'
     },
     {
         id: 'left-knee',
@@ -31,7 +31,7 @@ const initialState = {
     {
         id: 'heart',
         name: 'Heart',
-        position: { x: 55, y: 35 },
+        position: { x: 50, y: 37 },
         status: 'optimal',
         readiness: 80,
         tooltipPosition: 'right'
@@ -89,7 +89,15 @@ const initialState = {
     ]
   },
   isLoading: false,
-  error: null
+  error: null,
+  cognitiveData: [
+    { time: '06:00', label: '6 AM', cognitive: 45, focus: 40, memory: 50 },
+    { time: '09:00', label: '9 AM', cognitive: 75, focus: 80, memory: 70 },
+    { time: '12:00', label: '12 PM', cognitive: 65, focus: 60, memory: 70 },
+    { time: '15:00', label: '3 PM', cognitive: 55, focus: 50, memory: 60 },
+    { time: '18:00', label: '6 PM', cognitive: 70, focus: 75, memory: 65 },
+    { time: '21:00', label: '9 PM', cognitive: 50, focus: 45, memory: 55 }
+  ],
 };
 
 // Action types

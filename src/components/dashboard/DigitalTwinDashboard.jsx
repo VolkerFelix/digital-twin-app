@@ -3,6 +3,7 @@ import AvatarVisualization from '../avatar/AvatarVisualization';
 import MetricsPanel from './MetricsPanel';
 import SimulationControls from '../simulation/SimulationControls';
 import RecoveryChart from '../simulation/RecoveryChart';
+import CognitivePerformancePanel from '../simulation/CognitivePerformancePanel';
 import AdaptiveSuggestions from '../recommendations/AdaptiveSuggestions';
 import { DigitalTwinProvider } from '../../context/DigitalTwinContext';
 
@@ -23,7 +24,7 @@ const DigitalTwinDashboard = () => {
           {/* Main content area */}
           <div className="flex gap-4">
             {/* Left panel - Avatar & Stats */}
-            <div className="w-1/3 bg-white p-4 rounded-lg shadow">
+            <div className="w-1/4 bg-white p-4 rounded-lg shadow">
               <h2 className="text-lg font-semibold mb-4">Current State</h2>
               
               <AvatarVisualization />
@@ -31,11 +32,18 @@ const DigitalTwinDashboard = () => {
               <MetricsPanel />
             </div>
             
-            {/* Center panel - Simulations & Projections */}
-            <div className="w-2/5 bg-white p-4 rounded-lg shadow">
-              <SimulationControls />
+            {/* Center panels - Simulations & Projections */}
+            <div className="w-2/4 flex flex-col gap-4">
+              {/* Physical recovery panel */}
+              <div className="bg-white p-4 rounded-lg shadow">
+                <SimulationControls />
+                <RecoveryChart />
+              </div>
               
-              <RecoveryChart />
+              {/* Cognitive performance panel */}
+              <div className="bg-white p-4 rounded-lg shadow">
+                <CognitivePerformancePanel />
+              </div>
             </div>
             
             {/* Right panel - Recommendations */}
