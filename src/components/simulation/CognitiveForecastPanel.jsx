@@ -37,27 +37,7 @@ const CognitiveForecastPanel = () => {
   const { icon: trendIcon, color: trendColor } = getTrendingInfo(forecast?.improvementRate || 0);
   
   return (
-    <div className="w-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Cognitive Forecast</h2>
-        
-        {/* Time range selector */}
-        <div className="flex rounded-md overflow-hidden border">
-          <button
-            className={`px-3 py-1 text-sm ${forecastRange === '7days' ? 'bg-indigo-600 text-white' : 'bg-gray-100'}`}
-            onClick={() => setForecastRange('7days')}
-          >
-            Next 7 Days
-          </button>
-          <button 
-            className={`px-3 py-1 text-sm ${forecastRange === '30days' ? 'bg-indigo-600 text-white' : 'bg-gray-100'}`}
-            onClick={() => setForecastRange('30days')}
-          >
-            Next 30 Days
-          </button>
-        </div>
-      </div>
-      
+    <div className="w-full">     
       {/* Simulation Controls */}
       <div className="mb-4 p-3 border rounded-lg">
         <h3 className="text-sm font-medium mb-3">Simulation Parameters</h3>
