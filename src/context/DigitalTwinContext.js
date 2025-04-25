@@ -2,22 +2,22 @@ import React, { createContext, useReducer, useContext, useEffect } from 'react';
 
 // Initial state
 const initialState = {
-  readinessScore: 76,
-  fatigueLevel: 38,
-  confidenceScore: 87,
+  readinessScore: 56,
+  fatigueLevel: 68,
+  confidenceScore: 78,
   hrvReading: 62,
   sleepData: {
-    duration: 7.2,
-    quality: 'Normal',
-    trend: 'stable'
+    duration: 5.2,
+    quality: 'Poor',
+    trend: 'down'
   },
   bodyPartStatus: [
     {
         id: 'left-shoulder',
         name: 'Shoulder',
         position: { x: 65, y: 25 },
-        status: 'injured',
-        readiness: 10,
+        status: 'optimal',
+        readiness: 90,
         tooltipPosition: 'right'
     },
     {
@@ -40,8 +40,8 @@ const initialState = {
         id: 'mind',
         name: 'Mind',
         position: { x: 35, y: 10 },
-        status: 'optimal',
-        readiness: 90,
+        status: 'injured',
+        readiness: 19,
         tooltipPosition: 'left'
       }
   ],

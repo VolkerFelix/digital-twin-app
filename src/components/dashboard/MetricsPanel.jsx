@@ -19,13 +19,13 @@ const MetricsPanel = () => {
   
   // Mock data comparisons - in a real app these would come from the context
   const hrvTrend = {
-    direction: 'up',
-    value: '8% from baseline',
-    isPositive: true
+    direction: 'down',
+    value: '15% from baseline',
+    isPositive: false
   };
   
   const fatigueTrend = {
-    direction: 'up',
+    direction: 'down',
     value: '12% from yesterday',
     isPositive: false
   };
@@ -49,7 +49,7 @@ const MetricsPanel = () => {
           <span className="text-sm font-medium">Fatigue</span>
         </div>
         <p className="text-xl font-bold">{fatigueLevel}%</p>
-        <div className={`mt-1 text-xs ${getTrendColor(!fatigueTrend.isPositive ? 'better' : 'worse')}`}>
+        <div className={`mt-1 text-xs ${getTrendColor(fatigueTrend.isPositive ? 'better' : 'worse')}`}>
           {fatigueTrend.direction === 'up' ? '↑' : fatigueTrend.direction === 'down' ? '↓' : '→'} {fatigueTrend.value}
         </div>
       </div>
