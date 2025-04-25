@@ -1,9 +1,9 @@
 import React from 'react';
 
-const BodyPartHighlight = ({ cx, cy, radius, status, severity }) => {
+const BodyPartHighlight = ({ cx, cy, radius, status, readiness }) => {
   // Determine color based on status
-  const getHighlightColor = (status, severity) => {
-    const alpha = severity / 100 * 0.7; // Adjust opacity based on severity
+  const getHighlightColor = (status, readiness) => {
+    const alpha = readiness / 100 * 0.7; // Adjust opacity based on readiness
     
     switch (status) {
       case 'injured':
@@ -29,9 +29,9 @@ const BodyPartHighlight = ({ cx, cy, radius, status, severity }) => {
     }
   };
 
-  const { fill, stroke } = getHighlightColor(status, severity);
-  const isPulsing = severity > 60; // Only add pulsing animation for severe issues
-  const highlightSize = severity > 60 ? radius : radius * 0.8; // Bigger highlight for severe issues
+  const { fill, stroke } = getHighlightColor(status, readiness);
+  const isPulsing = readiness > 60; // Only add pulsing animation for severe issues
+  const highlightSize = readiness > 60 ? radius : radius * 0.8; // Bigger highlight for severe issues
 
   return (
     <circle 

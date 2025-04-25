@@ -1,5 +1,4 @@
 import React, { createContext, useReducer, useContext, useEffect } from 'react';
-import { fetchAthleteData, fetchHistoricalData } from '../services/api';
 
 // Initial state
 const initialState = {
@@ -14,21 +13,37 @@ const initialState = {
   },
   bodyPartStatus: [
     {
-      id: 'right-shoulder',
-      name: 'Shoulder',
-      position: { x: 85, y: 50 },
-      status: 'injured',
-      severity: 68,
-      tooltipPosition: 'right'
+        id: 'left-shoulder',
+        name: 'Shoulder',
+        position: { x: 65, y: 25 },
+        status: 'injured',
+        readiness: 10,
+        tooltipPosition: 'right'
     },
     {
-      id: 'left-knee',
-      name: 'Knee',
-      position: { x: 45, y: 160 },
-      status: 'recovering',
-      severity: 43,
-      tooltipPosition: 'left'
-    }
+        id: 'left-knee',
+        name: 'Knee',
+        position: { x: 60, y: 75 },
+        status: 'recovering',
+        readiness: 50,
+        tooltipPosition: 'right'
+    },
+    {
+        id: 'heart',
+        name: 'Heart',
+        position: { x: 55, y: 35 },
+        status: 'optimal',
+        readiness: 80,
+        tooltipPosition: 'right'
+    },
+    {
+        id: 'mind',
+        name: 'Mind',
+        position: { x: 35, y: 10 },
+        status: 'optimal',
+        readiness: 90,
+        tooltipPosition: 'left'
+      }
   ],
   simulationData: {
     sleepHours: 7,
@@ -185,29 +200,6 @@ const DigitalTwinContext = createContext();
 export const DigitalTwinProvider = ({ children }) => {
   const [state, dispatch] = useReducer(digitalTwinReducer, initialState);
   
-  // Actions
-  const fetchData = async () => {
-    dispatch({ type: ActionTypes.FETCH_DATA_START });
-    try {
-      // In a real app, these would be API calls
-      const athleteData = await fetchAthleteData();
-      const historicalData = await fetchHistoricalData();
-      
-      dispatch({
-        type: ActionTypes.FETCH_DATA_SUCCESS,
-        payload: {
-          ...athleteData,
-          historicalData
-        }
-      });
-    } catch (error) {
-      dispatch({
-        type: ActionTypes.FETCH_DATA_ERROR,
-        payload: error.message
-      });
-    }
-  };
-  
   const updateSimulation = (simulationParams) => {
     dispatch({
       type: ActionTypes.UPDATE_SIMULATION,
@@ -232,7 +224,6 @@ export const DigitalTwinProvider = ({ children }) => {
     <DigitalTwinContext.Provider 
       value={{
         ...state,
-        fetchData,
         updateSimulation,
         addToCalendar
       }}
