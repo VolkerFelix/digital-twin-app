@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useDigitalTwin } from '../../hooks/useDigitalTwin';
 import maleAvatar from '../../assets/images/avatar-male.png';
 
@@ -27,24 +27,11 @@ const AvatarVisualization = () => {
     }
   };
 
-  const positionMap = {
-    'right-shoulder': { x: '25%', y: '25%' },
-    'left-knee': { x: '40%', y: '75%' },
-    // Add more mappings as needed
-  };
-
-  // Log the body part status and position map for debugging
-  useEffect(() => {
-    if (debugMode) {
-      console.log("Body Part Status:", bodyPartStatus);
-      console.log("Position Map:", positionMap);
-    }
-  }, [bodyPartStatus, positionMap, debugMode]);
-
   return (
     <div className="flex flex-col items-center mb-6">
       <div className="relative mb-2">
         <div className="w-56 h-64 bg-white rounded-lg border border-blue-200 flex items-center justify-center overflow-hidden">
+          {/* Background gradient */}
           <div 
             className="absolute inset-0"
             style={{ 
@@ -59,77 +46,53 @@ const AvatarVisualization = () => {
             style={{ backgroundColor: getReadinessColor(readinessScore) }}
           ></div>
           
-          <div className="relative z-10 h-60 flex items-center justify-center">
+          {/* Avatar container */}
+          <div className="relative z-10 h-60 w-full flex items-center justify-center">
             <div className="relative h-full w-auto flex items-center justify-center">
-              {/* Replace this with your actual image */}
+              {/* Avatar image */}
               <img 
                 src={maleAvatar}
                 alt="Avatar" 
                 className="h-full w-auto object-contain"
               />
               
-              {/* Debug grid - only shown in debug mode */}
+              {/* Debug grid */}
               {debugMode && (
-                <div className="absolute inset-0 grid grid-cols-4 grid-rows-4">
-                  {Array.from({ length: 16 }).map((_, index) => (
-                    <div 
-                      key={index} 
-                      className="border border-blue-300 opacity-50 flex items-center justify-center text-xs text-blue-500"
-                    >
-                      {Math.floor(index / 4) * 25}%, {(index % 4) * 25}%
-                    </div>
-                  ))}
+                <div className="absolute inset-0 grid grid-cols-10 grid-rows-10">
+                  {Array.from({ length: 100 }).map((_, index) => {
+                    const row = Math.floor(index / 10);
+                    const col = index % 10;
+                    return (
+                      <div 
+                        key={index} 
+                        className="border border-blue-300 opacity-50 flex items-center justify-center text-[6px] text-blue-500"
+                      >
+                        {col*10},{row*10}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
             </div>
             
-            {/* Overlay indicators for body parts */}
+            {/* Body part indicators */}
             <div className="absolute inset-0">
               {bodyPartStatus.map((part) => {
-                // Check if we have a mapping for this part.id
-                // If we do, use it; otherwise fall back to the part's original position
-                const mappedPosition = positionMap[part.id];
-                
-                // Create the final position style object
-                const positionStyle = mappedPosition 
-                  ? { top: mappedPosition.y, left: mappedPosition.x }
-                  : { 
-                      top: `${part.position.y / 200 * 100}%`, 
-                      left: `${part.position.x / 120 * 100}%` 
-                    };
-                
-                // Log the position being used for this part (in debug mode)
-                if (debugMode) {
-                  console.log(`Part ${part.id} position:`, positionStyle);
-                }
-                
-                // Determine size and animation based on severity
-                const sizeClass = part.severity > 60 ? 'w-5 h-5' : 'w-4 h-4';
-                const animationClass = part.severity > 60 ? 'animate-pulse' : '';
+                // Determine size and animation based on readiness
+                const sizeClass = part.readiness < 40 ? 'w-5 h-5' : 'w-4 h-4';
+                const animationClass = part.readiness < 40 ? 'animate-pulse' : '';
                 
                 return (
-                  <div key={part.id} className="absolute">
+                  <div key={part.id} className="absolute" style={{ left: 0, top: 0, width: '100%', height: '100%' }}>
                     {/* Highlight circle */}
                     <div 
                       className={`absolute rounded-full ${sizeClass} ${animationClass} border-2 shadow-sm`}
                       style={{
-                        ...positionStyle,
-                        backgroundColor: `${getStatusColor(part.status)}${Math.round(part.severity / 100 * 70).toString(16).padStart(2, '0')}`,
+                        left: `${part.position.x}%`,
+                        top: `${part.position.y}%`,
+                        backgroundColor: `${getStatusColor(part.status)}${Math.round(part.readiness / 100 * 70).toString(16).padStart(2, '0')}`,
                         borderColor: getStatusColor(part.status),
                         transform: 'translate(-50%, -50%)'
-                      }}
-                    />
-                    
-                    {/* Tooltip line */}
-                    <div 
-                      className="absolute h-px w-8"
-                      style={{
-                        ...positionStyle,
-                        left: part.tooltipPosition === 'right' 
-                          ? `calc(${positionStyle.left} + 0px)` 
-                          : `calc(${positionStyle.left} - 32px)`,
-                        backgroundColor: getStatusColor(part.status),
-                        transform: 'translateY(-50%)'
                       }}
                     />
                     
@@ -141,15 +104,32 @@ const AvatarVisualization = () => {
                         'bg-green-100 text-green-800 border-green-200'
                       } border shadow-sm`}
                       style={{
-                        ...positionStyle,
                         left: part.tooltipPosition === 'right' 
-                          ? `calc(${positionStyle.left} + 32px)` 
-                          : `calc(${positionStyle.left} - 72px)`,
-                        transform: 'translateY(-50%)'
+                          ? `calc(${part.position.x}% + 15px)` 
+                          : `calc(${part.position.x}% - 15px)`,
+                        top: `${part.position.y}%`,
+                        transform: part.tooltipPosition === 'right'
+                          ? 'translate(0, -50%)'
+                          : 'translate(-100%, -50%)'
                       }}
                     >
-                      {part.name}: {part.severity}%
+                      {part.readiness}%
                     </div>
+
+                    {/* Connecting line */}
+                    <div 
+                      className="absolute h-px"
+                      style={{
+                        top: `${part.position.y}%`,
+                        left: part.tooltipPosition === 'right' 
+                          ? `${part.position.x}%` 
+                          : `calc(${part.position.x}% - 15px)`,
+                        width: '15px',
+                        backgroundColor: getStatusColor(part.status),
+                        transform: 'translateY(-50%)',
+                        transformOrigin: part.tooltipPosition === 'right' ? 'left' : 'right'
+                      }}
+                    />
                   </div>
                 );
               })}
@@ -172,14 +152,6 @@ const AvatarVisualization = () => {
           <div className="absolute top-2 right-2 bg-blue-600 px-2 py-1 rounded-full text-xs font-bold text-white shadow-md">
             Lvl {readinessScore}
           </div>
-          
-          {/* Debug toggle button */}
-          <button 
-            className="absolute bottom-2 right-2 text-xs bg-gray-200 px-2 py-1 rounded opacity-60 hover:opacity-100"
-            onClick={() => setDebugMode(!debugMode)}
-          >
-            {debugMode ? 'Hide Grid' : 'Show Grid'}
-          </button>
         </div>
       </div>
       
