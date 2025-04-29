@@ -24,7 +24,15 @@ export const useDigitalTwin = () => {
     cognitiveSimulation, 
     updateSimulation,
     addToCalendar,
-    updateCognitiveSimulation
+    updateCognitiveSimulation,
+    userChronotype,
+    circadianAlignment,
+    circadianData,
+    scheduledActivities,
+    currentTime,
+    updateChronotype,
+    updateScheduledActivity,
+    analyzeAlignment
   } = context;
 
 // Add function to analyze short-term cognitive projection (next 7 days)

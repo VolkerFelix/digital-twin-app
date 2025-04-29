@@ -386,11 +386,139 @@ export const DigitalTwinProvider = ({ children }) => {
       payload: simulationParams
     });
   };
+
+  // Determine optimal activity type based on time and chronotype
+const getOptimalActivity = (time, chronotype, energyLevel) => {
+    if (energyLevel >= 70) return 'training';
+    if (energyLevel >= 50 && energyLevel < 70) return 'technical';
+    if (energyLevel < 40) return 'recovery';
+    return 'flexible';
+  };
+
+  // Generate circadian data based on chronotype
+const generateCircadianData = (chronotype) => {
+    const timePoints = [
+      '12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM', '12 AM'
+    ];
+    
+    // Different energy patterns based on chronotype
+    const energyPatterns = {
+      morning: [15, 10, 30, 85, 70, 55, 40, 30, 15],
+      intermediate: [10, 5, 40, 70, 65, 75, 60, 40, 10],
+      evening: [20, 10, 25, 50, 65, 80, 85, 70, 20]
+    };
+    
+    const pattern = energyPatterns[chronotype] || energyPatterns.intermediate;
+    
+    // Notes for specific times
+    const timeNotes = {
+      morning: {
+        '6 AM': 'Natural wake-up',
+        '9 AM': 'Peak performance',
+        '3 PM': 'Afternoon dip',
+        '9 PM': 'Ready for sleep'
+      },
+      intermediate: {
+        '6 AM': 'Waking up',
+        '3 PM': 'Second peak',
+        '9 PM': 'Starting to wind down'
+      },
+      evening: {
+        '9 AM': 'Still warming up',
+        '3 PM': 'Hitting stride',
+        '6 PM': 'Peak performance',
+        '3 AM': 'Natural sleep period'
+      }
+    };
+    
+    const notes = timeNotes[chronotype] || {};
+    
+    return timePoints.map((time, index) => ({
+      time,
+      label: time,
+      energy: pattern[index],
+      note: notes[time] || null,
+      optimalActivity: getOptimalActivity(time, chronotype, pattern[index])
+    }));
+  };
+
+// Analyze how well scheduled activities align with circadian rhythm
+const analyzeCircadianAlignment = (circadianData, scheduledActivities) => {
+    if (!circadianData || !scheduledActivities) return 'unknown';
+    
+    let alignmentScore = 0;
+    const relevantActivities = scheduledActivities.filter(
+      activity => activity.activity !== 'Sleep' && activity.intensity > 0
+    );
+    
+    if (relevantActivities.length === 0) return 'unknown';
+    
+    // Go through each scheduled activity and check alignment
+    relevantActivities.forEach(activity => {
+      // Find matching time slot in circadian data
+      const timeSlot = circadianData.find(slot => slot.time === activity.time);
+      if (!timeSlot) return;
+      
+      // High-intensity activities during high-energy periods = good alignment
+      if (activity.intensity > 70 && timeSlot.energy > 70) {
+        alignmentScore += 2;
+      } 
+      // High-intensity activities during low-energy periods = poor alignment
+      else if (activity.intensity > 70 && timeSlot.energy < 40) {
+        alignmentScore -= 2;
+      }
+      // Medium activities well matched
+      else if (activity.intensity >= 40 && activity.intensity <= 70 && 
+               timeSlot.energy >= 40 && timeSlot.energy <= 70) {
+        alignmentScore += 1;
+      }
+      // Recovery activities during low-energy periods = good alignment
+      else if (activity.intensity < 40 && timeSlot.energy < 40) {
+        alignmentScore += 1;
+      }
+    });
+    
+    // Determine overall alignment status
+    const normalizedScore = alignmentScore / relevantActivities.length;
+    
+    if (normalizedScore > 0.5) return 'optimal';
+    if (normalizedScore >= -0.5) return 'moderate';
+    return 'misaligned';
+  };
   
-  // Mock initial data fetch when component mounts
-  useEffect(() => {
-    // In a real app, this would call fetchData()
-    // For this example, we'll use the initial state
+// Initialize circadian data when component mounts
+useEffect(() => {
+    // Generate initial circadian data based on chronotype
+    const initialCircadianData = generateCircadianData(state.userChronotype);
+    
+    // Set up current time
+    const currentTime = new Date();
+    
+    // Analyze alignment between circadian rhythm and scheduled activities
+    const alignmentStatus = analyzeCircadianAlignment(
+      initialCircadianData,
+      state.scheduledActivities
+    );
+    
+    // Update state with initial values
+    dispatch({
+      type: ActionTypes.FETCH_DATA_SUCCESS,
+      payload: {
+        circadianData: initialCircadianData,
+        currentTime,
+        circadianAlignment: alignmentStatus
+      }
+    });
+    
+    // Update current time every minute
+    const timer = setInterval(() => {
+      dispatch({
+        type: ActionTypes.FETCH_DATA_SUCCESS,
+        payload: { currentTime: new Date() }
+      });
+    }, 60000);
+    
+    return () => clearInterval(timer);
   }, []);
   
   return (
