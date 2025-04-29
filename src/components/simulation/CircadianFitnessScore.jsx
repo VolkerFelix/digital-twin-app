@@ -153,12 +153,6 @@ const CircadianFitnessScore = () => {
           </div>
         </div>
       </div>
-      
-      {score < 80 && (
-        <div className="mt-3 text-xs bg-indigo-50 p-2 rounded-md">
-          <span className="font-medium text-indigo-700">Tip:</span> Use the Circadian Rhythm panel to visualize optimal training times.
-        </div>
-      )}
     </div>
   );
 };
