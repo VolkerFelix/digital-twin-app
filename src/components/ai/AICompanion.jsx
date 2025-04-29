@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useContext } from 'react';
-import { Send, Bot, User, ThumbsUp, ThumbsDown, MoreHorizontal, Mic, Sparkles } from 'lucide-react';
+import { Send, Bot, User, ThumbsUp, ThumbsDown, MoreHorizontal, Mic, Sparkles, Calendar } from 'lucide-react';
 import DigitalTwinContext from '../../context/DigitalTwinContext';
 
 // Helper function to format message text with markdown-like styling
@@ -32,9 +32,7 @@ const formatMessageText = (text) => {
 
 const initialText = `Sarah, your cognitive performance is projected at 62% for Thursday's board presentation. 
     Two targeted interventions can increase this to 85-91% with an estimated 78% confidence level.\n
-    **Tue Strategic Nap | 2:45-3:05 PM**\n   * 20-minute duration\n   * Caffeine immediately before for optimal effect\n   * Impact: +24% afternoon cognitive processing speed\n   * Recommended for presentation preparation efficiency
-    **Wednesday Light Exposure | 7:30-7:50 AM**\n   * Bright light (10,000 lux) exposure\n   * Critical timing for circadian reset\n   * Calendar block already created\n   * Impact: +1.2 hour circadian alignment
-    **Wednesday Sleep Measurement | Critical Data Point**\n   * Wear device Wednesday night\n   * Will increase Thursday prediction accuracy by 31%\n   * Enables precise morning protocol optimization\n   * Decision threshold for supplemental interventions\n64% of high-performing executives utilize similar protocols before critical presentations. Your historical data indicates these specific interventions align with your peak cognitive performance patterns from Q4 presentations.\nAdditional details available on request. Would you like the detailed protocol for Wednesday's pre-sleep optimization?`;
+    64% of high-performing executives utilize similar protocols before critical presentations. Your historical data indicates these specific interventions align with your peak cognitive performance patterns from Q4 presentations.\nAdditional details available on request. Would you like the detailed protocol for Wednesday's pre-sleep optimization?`;
 
 const AICompanion = () => {
   const digitalTwinContext = useContext(DigitalTwinContext);
@@ -55,6 +53,8 @@ const AICompanion = () => {
     "What's the science behind the strategic nap?",
     "Will these interventions affect my physical training?"
   ]);
+  const [showCalendarIntegration, setShowCalendarIntegration] = useState(false);
+  const [calendarEvents, setCalendarEvents] = useState([]);
   const messagesEndRef = useRef(null);
 
   // Simulate bot response
@@ -65,8 +65,16 @@ const AICompanion = () => {
     setTimeout(() => {
       let response = '';
       
+      // Check for calendar-related requests
+      if (userMessage.toLowerCase().includes('add to calendar') || 
+          userMessage.toLowerCase().includes('schedule nap') ||
+          userMessage.toLowerCase().includes('light exposure') ||
+          userMessage.toLowerCase().includes('interventions')) {
+        setShowCalendarIntegration(true);
+        response = "I've prepared the recommended interventions for you to add to your calendar. You can add them individually using the buttons below:";
+      }
       // Simple pattern matching for demo purposes
-      if (userMessage.toLowerCase().includes('training today') || 
+      else if (userMessage.toLowerCase().includes('training today') || 
           userMessage.toLowerCase().includes('workout') ||
           userMessage.toLowerCase().includes('exercise')) {
         if (readinessScore < 40) {
@@ -110,7 +118,15 @@ const AICompanion = () => {
 
   // Update suggested questions based on conversation context
   const updateSuggestedQuestions = (lastMessage) => {
-    if (lastMessage.toLowerCase().includes('training') || lastMessage.toLowerCase().includes('workout')) {
+    if (lastMessage.toLowerCase().includes('calendar') || lastMessage.toLowerCase().includes('interventions')) {
+      setSuggestedQuestions([
+        "Tell me more about the strategic nap",
+        "Why is light exposure important?",
+        "Can I customize these times?",
+        "Add these to my calendar"
+      ]);
+    }
+    else if (lastMessage.toLowerCase().includes('training') || lastMessage.toLowerCase().includes('workout')) {
       setSuggestedQuestions([
         "Should I focus on strength or cardio?",
         "How do I adjust intensity based on fatigue?",
@@ -183,13 +199,8 @@ const AICompanion = () => {
     }
   };
 
-  // Auto-scroll to bottom of messages
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, isTyping]);
-
   return (
-    <div className="w-full h-full flex flex-col">
+    <div className="w-full h-full flex flex-col" style={{ height: '900px' }}>
       <div className="px-1 py-2 border-b flex justify-between items-center">
         <div className="flex items-center">
           <Bot size={18} className="text-indigo-600 mr-2" />
@@ -284,7 +295,7 @@ const AICompanion = () => {
           <textarea
             className="w-full p-2 pr-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 resize-none"
             placeholder="Ask something about your training or recovery..."
-            rows={1}
+            rows={2}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}

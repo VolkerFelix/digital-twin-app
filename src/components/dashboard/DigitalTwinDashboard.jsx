@@ -5,9 +5,9 @@ import SimulationControls from '../simulation/SimulationControls';
 import RecoveryChart from '../simulation/RecoveryChart';
 import CognitivePerformancePanel from '../simulation/CognitivePerformancePanel';
 import AICompanion from '../ai/AICompanion';
-import AdaptiveSuggestions from '../recommendations/AdaptiveSuggestions';
 import { DigitalTwinProvider } from '../../context/DigitalTwinContext';
 import CircadianRhythmPanel from '../simulation/CircadianRhythmPanel';
+import StandaloneCalendarIntegration from '../calendar/StandaloneCalendarIntegration';
 
 const DigitalTwinDashboard = () => {
   return (
@@ -48,6 +48,8 @@ const DigitalTwinDashboard = () => {
             {/* Right panel - AI Companion (replacing Adaptive Suggestions) */}
             <div className="w-1/4 bg-white p-4 rounded-lg shadow">
               <AICompanion />
+
+              <StandaloneCalendarIntegration />
             </div>
           </div>
         </div>
