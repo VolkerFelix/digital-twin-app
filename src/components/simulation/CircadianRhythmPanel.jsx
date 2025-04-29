@@ -196,47 +196,6 @@ const CircadianRhythmPanel = () => {
           </p>
         </div>
       )}
-      
-      {/* Content based on active tab */}
-      {activeTab === 'chart' && (
-        <>
-          <CircadianRhythmChart />
-          
-          <div className="p-3 border rounded-lg mt-3">
-            <div className="flex items-center gap-2 mb-1">
-              {alignment.icon}
-              <span className={`text-sm font-medium ${alignment.color}`}>{alignment.label}</span>
-            </div>
-            <p className="text-xs text-gray-600">
-              {alignment.description}
-            </p>
-            
-            {circadianAlignment !== 'optimal' && (
-              <div className="mt-2 text-xs text-indigo-600">
-                Tip: Schedule high-intensity sessions during your natural energy peaks
-              </div>
-            )}
-          </div>
-        </>
-      )}
-      
-      {activeTab === 'schedule' && (
-        <CircadianActivitySchedule />
-      )}
-      
-      {activeTab === 'alignment' && (
-        <>
-          <CircadianAlignmentVisualization />
-          
-          <div className="mt-3 p-3 border rounded-lg bg-indigo-50">
-            <h3 className="text-sm font-medium mb-1">Alignment Analysis</h3>
-            <p className="text-xs text-gray-700">
-              This chart shows how well your scheduled activities align with your natural energy levels throughout the day.
-              Positive bars indicate good alignment, while negative bars show potential mismatches.
-            </p>
-          </div>
-        </>
-      )}
     </div>
   );
 };

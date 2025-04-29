@@ -28,23 +28,7 @@ const SimulationControls = () => {
   };
   
   return (
-    <div className="w-full">
-      {/* Tab controls */}
-      <div className="flex mb-4">
-        <button
-          className={`px-4 py-2 rounded-l-md ${activeTab === 'current' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
-          onClick={() => setActiveTab('current')}
-        >
-          Current Projection
-        </button>
-        <button 
-          className={`px-4 py-2 rounded-r-md ${activeTab === 'simulation' ? 'bg-blue-600 text-white' : 'bg-gray-100'}`}
-          onClick={() => setActiveTab('simulation')}
-        >
-          "What If" Simulation
-        </button>
-      </div>
-      
+    <div className="w-full">      
       <h2 className="text-lg font-semibold">Recovery Projection</h2>
       <p className="text-sm text-gray-500 mb-4">How different factors affect your recovery timeline</p>
       
@@ -81,20 +65,6 @@ const SimulationControls = () => {
             <span className="text-sm font-medium">{workoutIntensity}%</span>
           </div>
         </div>
-      </div>
-      
-      {/* Recovery insight information */}
-      <div className="p-3 border rounded-lg bg-blue-50">
-        <h3 className="text-sm font-medium mb-1">Recovery Insight</h3>
-        <p className="text-sm">
-          With {sleepHours}h of sleep and {workoutIntensity}% workout intensity, 
-          you'll reach optimal readiness in <span className="font-bold">
-            {recoveryTime} days
-          </span>. 
-          <span className={workoutIntensity > 80 ? "text-red-600" : ""}>
-            {workoutIntensity > 80 ? " Consider reducing intensity to improve recovery time." : ""}
-          </span>
-        </p>
       </div>
     </div>
   );

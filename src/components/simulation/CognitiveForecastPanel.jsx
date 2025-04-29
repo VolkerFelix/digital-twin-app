@@ -84,25 +84,6 @@ const CognitiveForecastPanel = () => {
             </div>
           </div>
           
-          <div>
-            <label className="block text-xs font-medium mb-1">Nutrition Quality</label>
-            <div className="flex items-center gap-2">
-              <Apple size={14} />
-              <input
-                type="range"
-                min="10"
-                max="100"
-                value={simulationParams.nutritionQuality}
-                onChange={(e) => handleParamChange('nutritionQuality', parseInt(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
-              />
-              <span className="text-xs font-medium">{simulationParams.nutritionQuality}%</span>
-                <div className="text-xs ml-2">
-                    Impact: +{((simulationParams.nutritionQuality / 100) * 8).toFixed(1)}%
-                </div>
-            </div>
-          </div>
-          
           <div className="flex items-center gap-4">
             <div className="flex items-center">
               <input
@@ -206,21 +187,6 @@ const CognitiveForecastPanel = () => {
           </div>
         </div>
       )}
-      
-      {/* Impact factors */}
-      <div className="mt-3 p-3 border rounded-lg bg-indigo-50">
-        <div className="flex items-center gap-2 mb-2">
-          <BookOpen size={16} className="text-indigo-600" />
-          <span className="text-sm font-medium">Key Improvement Factors</span>
-        </div>
-        <p className="text-sm">
-          Your cognitive forecast shows <span className="font-bold">{forecast?.topFactor.name}</span> has the strongest impact 
-          (+{forecast?.topFactor.value.toFixed(1)}%) on your future performance. 
-          {simulationParams.mentalExercises 
-            ? " Mental training exercises are projected to accelerate improvement." 
-            : " Adding mental training could further accelerate your progress."}
-        </p>
-      </div>
     </div>
   );
 };

@@ -250,23 +250,24 @@ const digitalTwinReducer = (state, action) => {
         }
       };
     case ActionTypes.UPDATE_COGNITIVE_SIMULATION:
-        // Calculate current average cognitive score
-        const baselineScore = state.cognitiveData.reduce(
-          (sum, point) => sum + point.cognitive, 0
-        ) / state.cognitiveData.length;
-        
-        // Generate new forecast based on updated parameters
-        const newForecast = generateCognitiveForecast(
-          baselineScore, 
-          action.payload,
-          30 // Generate 30 days
-        );
-        
-        return {
-          ...state,
-          cognitiveSimulation: action.payload,
-          cognitiveForecast: newForecast
-        };
+      // Calculate current average cognitive score
+      const baselineScore = state.cognitiveData.reduce(
+        (sum, point) => sum + point.cognitive, 0
+      ) / state.cognitiveData.length;
+      
+      // Generate new forecast based on updated parameters, passing existing forecast
+      const newForecast = generateCognitiveForecast(
+        baselineScore, 
+        action.payload,
+        30, // Generate 30 days
+        state.cognitiveForecast // Pass existing forecast for blending
+      );
+      
+      return {
+        ...state,
+        cognitiveSimulation: action.payload,
+        cognitiveForecast: newForecast
+      };
     default:
       return state;
   }
@@ -309,55 +310,84 @@ const calculateProjectedReadiness = (currentReadiness, sleepHours, workoutIntens
 };
 
 // In DigitalTwinContext.js
-const generateCognitiveForecast = (currentScore, params, days = 30) => {
-    const forecast = [];
-    const today = new Date();
+const generateCognitiveForecast = (currentScore, params, days = 30, existingForecast = []) => {
+  const forecast = [];
+  const today = new Date();
+  
+  // Base starting score
+  let score = currentScore;
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
     
-    let score = currentScore;
+    // Calculate daily impacts based on parameters
+    const sleepImpact = (params.sleepQuality - 6) * 0.8; // Reduced multiplier
+    const workoutImpact = params.workoutIntensity > 80 
+      ? -((params.workoutIntensity - 80) * 0.05) // Reduced penalty
+      : (params.workoutIntensity / 100) * 1.2;   // Reduced benefit
+    const nutritionImpact = (params.nutritionQuality / 100) * 4; // Reduced impact
+    const recoveryImpact = params.recoveryActivities ? 2.5 : 0;  // Reduced impact
+    const mentalImpact = params.mentalExercises ? 3.5 : 0;       // Reduced impact
     
-    for (let i = 0; i < days; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      
-      // Calculate daily impacts based on parameters
-      const sleepImpact = (params.sleepQuality - 6) * 1.5;
-      const workoutImpact = params.workoutIntensity > 80 
-        ? -((params.workoutIntensity - 80) * 0.1) 
-        : (params.workoutIntensity / 100) * 2;
-      const nutritionImpact = (params.nutritionQuality / 100) * 8;
-      const recoveryImpact = params.recoveryActivities ? 5 : 0;
-      const mentalImpact = params.mentalExercises ? 7 : 0;
-      
-      // Natural improvement rate (diminishing returns)
-      const naturalRate = Math.max(0, (90 - score) * 0.05);
-      
-      // Calculate total daily change
-      const dailyChange = sleepImpact + workoutImpact + nutritionImpact + 
-                        recoveryImpact + mentalImpact + naturalRate;
-      
-      // Update score with constraints
-      score = Math.min(100, Math.max(0, score + dailyChange));
-      
-      // Uncertainty increases with time
-      const uncertainty = 2 + (i * 1.5);
-      
-      forecast.push({
-        day: i,
-        date: date.toISOString().split('T')[0],
-        label: i === 0 ? 'Today' : 
-               i === 1 ? 'Tomorrow' : 
-               date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        predicted: Math.round(score),
-        confidenceLower: Math.max(0, Math.round(score - uncertainty)),
-        confidenceUpper: Math.min(100, Math.round(score + uncertainty)),
-        sleepImpact,
-        recoveryImpact: recoveryImpact + (workoutImpact < 0 ? workoutImpact : 0),
-        nutritionImpact
-      });
+    // Natural improvement rate (diminishing returns)
+    const naturalRate = Math.max(0, (90 - score) * 0.03);
+    
+    // Calculate total daily change
+    const dailyChange = sleepImpact + workoutImpact + nutritionImpact + 
+                      recoveryImpact + mentalImpact + naturalRate;
+    
+    // If we have an existing forecast point, blend with previous prediction
+    let blendedScore;
+    if (existingForecast[i]) {
+      // Blend new calculation with previous prediction (70% old, 30% new calculation)
+      // This creates smoother transitions when parameters change
+      const previousPredicted = existingForecast[i].predicted;
+      blendedScore = (previousPredicted * 0.7) + ((score + dailyChange) * 0.3);
+    } else {
+      blendedScore = score + dailyChange;
     }
     
-    return forecast;
-  };
+    // Update score with constraints
+    score = Math.min(100, Math.max(0, blendedScore));
+    
+    // Preserve some randomness from previous forecast if available
+    let randomFactor = 0;
+    if (existingForecast[i]) {
+      // Extract the random variation from previous forecast
+      const previousRandomness = existingForecast[i].predicted - 
+        (i > 0 ? existingForecast[i-1].predicted : currentScore) - dailyChange;
+      
+      // Keep 50% of the previous randomness
+      randomFactor = previousRandomness * 0.5;
+    } else {
+      // Add small random variations (±1.5%) for natural-looking chart
+      randomFactor = (Math.random() - 0.5) * 3;
+    }
+    
+    // Apply the random factor
+    score = Math.min(100, Math.max(0, score + randomFactor));
+    
+    // Uncertainty increases with time
+    const uncertainty = 2 + (i * 1.5);
+    
+    forecast.push({
+      day: i,
+      date: date.toISOString().split('T')[0],
+      label: i === 0 ? 'Today' : 
+             i === 1 ? 'Tomorrow' : 
+             date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      predicted: Math.round(score),
+      confidenceLower: Math.max(0, Math.round(score - uncertainty)),
+      confidenceUpper: Math.min(100, Math.round(score + uncertainty)),
+      sleepImpact,
+      recoveryImpact: recoveryImpact + (workoutImpact < 0 ? workoutImpact : 0),
+      nutritionImpact
+    });
+  }
+  
+  return forecast;
+};
 
 // Create context
 const DigitalTwinContext = createContext();
