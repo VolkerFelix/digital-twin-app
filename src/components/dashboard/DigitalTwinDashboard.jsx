@@ -4,6 +4,7 @@ import MetricsPanel from './MetricsPanel';
 import SimulationControls from '../simulation/SimulationControls';
 import RecoveryChart from '../simulation/RecoveryChart';
 import CognitivePerformancePanel from '../simulation/CognitivePerformancePanel';
+import AICompanion from '../ai/AICompanion';
 import AdaptiveSuggestions from '../recommendations/AdaptiveSuggestions';
 import { DigitalTwinProvider } from '../../context/DigitalTwinContext';
 import CircadianRhythmPanel from '../simulation/CircadianRhythmPanel';
@@ -44,9 +45,9 @@ const DigitalTwinDashboard = () => {
               </div>
             </div>
             
-            {/* Right panel - Recommendations */}
+            {/* Right panel - AI Companion (replacing Adaptive Suggestions) */}
             <div className="w-1/4 bg-white p-4 rounded-lg shadow">
-              <AdaptiveSuggestions />
+              <AICompanion />
             </div>
           </div>
         </div>
