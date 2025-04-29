@@ -7,8 +7,7 @@ function App() {
     <div className="min-h-screen bg-gray-200 p-4">
       <div className="max-w-7xl mx-auto">
         <header className="py-4 mb-6">
-          <h1 className="text-3xl font-bold text-gray-900">Athlete Performance Dashboard</h1>
-          <p className="text-gray-600">Your personal digital twin for optimized training</p>
+          <h1 className="text-3xl font-bold text-gray-900">Digital Twin Dashboard</h1>
         </header>
         
         <main>

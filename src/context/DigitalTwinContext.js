@@ -250,23 +250,24 @@ const digitalTwinReducer = (state, action) => {
         }
       };
     case ActionTypes.UPDATE_COGNITIVE_SIMULATION:
-        // Calculate current average cognitive score
-        const baselineScore = state.cognitiveData.reduce(
-          (sum, point) => sum + point.cognitive, 0
-        ) / state.cognitiveData.length;
-        
-        // Generate new forecast based on updated parameters
-        const newForecast = generateCognitiveForecast(
-          baselineScore, 
-          action.payload,
-          30 // Generate 30 days
-        );
-        
-        return {
-          ...state,
-          cognitiveSimulation: action.payload,
-          cognitiveForecast: newForecast
-        };
+      // Calculate current average cognitive score
+      const baselineScore = state.cognitiveData.reduce(
+        (sum, point) => sum + point.cognitive, 0
+      ) / state.cognitiveData.length;
+      
+      // Generate new forecast based on updated parameters, passing existing forecast
+      const newForecast = generateCognitiveForecast(
+        baselineScore, 
+        action.payload,
+        30, // Generate 30 days
+        state.cognitiveForecast // Pass existing forecast for blending
+      );
+      
+      return {
+        ...state,
+        cognitiveSimulation: action.payload,
+        cognitiveForecast: newForecast
+      };
     default:
       return state;
   }
@@ -309,55 +310,84 @@ const calculateProjectedReadiness = (currentReadiness, sleepHours, workoutIntens
 };
 
 // In DigitalTwinContext.js
-const generateCognitiveForecast = (currentScore, params, days = 30) => {
-    const forecast = [];
-    const today = new Date();
+const generateCognitiveForecast = (currentScore, params, days = 30, existingForecast = []) => {
+  const forecast = [];
+  const today = new Date();
+  
+  // Base starting score
+  let score = currentScore;
+  
+  for (let i = 0; i < days; i++) {
+    const date = new Date(today);
+    date.setDate(today.getDate() + i);
     
-    let score = currentScore;
+    // Calculate daily impacts based on parameters
+    const sleepImpact = (params.sleepQuality - 6) * 0.8; // Reduced multiplier
+    const workoutImpact = params.workoutIntensity > 80 
+      ? -((params.workoutIntensity - 80) * 0.05) // Reduced penalty
+      : (params.workoutIntensity / 100) * 1.2;   // Reduced benefit
+    const nutritionImpact = (params.nutritionQuality / 100) * 4; // Reduced impact
+    const recoveryImpact = params.recoveryActivities ? 2.5 : 0;  // Reduced impact
+    const mentalImpact = params.mentalExercises ? 3.5 : 0;       // Reduced impact
     
-    for (let i = 0; i < days; i++) {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      
-      // Calculate daily impacts based on parameters
-      const sleepImpact = (params.sleepQuality - 6) * 1.5;
-      const workoutImpact = params.workoutIntensity > 80 
-        ? -((params.workoutIntensity - 80) * 0.1) 
-        : (params.workoutIntensity / 100) * 2;
-      const nutritionImpact = (params.nutritionQuality / 100) * 8;
-      const recoveryImpact = params.recoveryActivities ? 5 : 0;
-      const mentalImpact = params.mentalExercises ? 7 : 0;
-      
-      // Natural improvement rate (diminishing returns)
-      const naturalRate = Math.max(0, (90 - score) * 0.05);
-      
-      // Calculate total daily change
-      const dailyChange = sleepImpact + workoutImpact + nutritionImpact + 
-                        recoveryImpact + mentalImpact + naturalRate;
-      
-      // Update score with constraints
-      score = Math.min(100, Math.max(0, score + dailyChange));
-      
-      // Uncertainty increases with time
-      const uncertainty = 2 + (i * 1.5);
-      
-      forecast.push({
-        day: i,
-        date: date.toISOString().split('T')[0],
-        label: i === 0 ? 'Today' : 
-               i === 1 ? 'Tomorrow' : 
-               date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
-        predicted: Math.round(score),
-        confidenceLower: Math.max(0, Math.round(score - uncertainty)),
-        confidenceUpper: Math.min(100, Math.round(score + uncertainty)),
-        sleepImpact,
-        recoveryImpact: recoveryImpact + (workoutImpact < 0 ? workoutImpact : 0),
-        nutritionImpact
-      });
+    // Natural improvement rate (diminishing returns)
+    const naturalRate = Math.max(0, (90 - score) * 0.03);
+    
+    // Calculate total daily change
+    const dailyChange = sleepImpact + workoutImpact + nutritionImpact + 
+                      recoveryImpact + mentalImpact + naturalRate;
+    
+    // If we have an existing forecast point, blend with previous prediction
+    let blendedScore;
+    if (existingForecast[i]) {
+      // Blend new calculation with previous prediction (70% old, 30% new calculation)
+      // This creates smoother transitions when parameters change
+      const previousPredicted = existingForecast[i].predicted;
+      blendedScore = (previousPredicted * 0.7) + ((score + dailyChange) * 0.3);
+    } else {
+      blendedScore = score + dailyChange;
     }
     
-    return forecast;
-  };
+    // Update score with constraints
+    score = Math.min(100, Math.max(0, blendedScore));
+    
+    // Preserve some randomness from previous forecast if available
+    let randomFactor = 0;
+    if (existingForecast[i]) {
+      // Extract the random variation from previous forecast
+      const previousRandomness = existingForecast[i].predicted - 
+        (i > 0 ? existingForecast[i-1].predicted : currentScore) - dailyChange;
+      
+      // Keep 50% of the previous randomness
+      randomFactor = previousRandomness * 0.5;
+    } else {
+      // Add small random variations (±1.5%) for natural-looking chart
+      randomFactor = (Math.random() - 0.5) * 3;
+    }
+    
+    // Apply the random factor
+    score = Math.min(100, Math.max(0, score + randomFactor));
+    
+    // Uncertainty increases with time
+    const uncertainty = 2 + (i * 1.5);
+    
+    forecast.push({
+      day: i,
+      date: date.toISOString().split('T')[0],
+      label: i === 0 ? 'Today' : 
+             i === 1 ? 'Tomorrow' : 
+             date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }),
+      predicted: Math.round(score),
+      confidenceLower: Math.max(0, Math.round(score - uncertainty)),
+      confidenceUpper: Math.min(100, Math.round(score + uncertainty)),
+      sleepImpact,
+      recoveryImpact: recoveryImpact + (workoutImpact < 0 ? workoutImpact : 0),
+      nutritionImpact
+    });
+  }
+  
+  return forecast;
+};
 
 // Create context
 const DigitalTwinContext = createContext();
@@ -386,11 +416,139 @@ export const DigitalTwinProvider = ({ children }) => {
       payload: simulationParams
     });
   };
+
+  // Determine optimal activity type based on time and chronotype
+const getOptimalActivity = (time, chronotype, energyLevel) => {
+    if (energyLevel >= 70) return 'training';
+    if (energyLevel >= 50 && energyLevel < 70) return 'technical';
+    if (energyLevel < 40) return 'recovery';
+    return 'flexible';
+  };
+
+  // Generate circadian data based on chronotype
+const generateCircadianData = (chronotype) => {
+    const timePoints = [
+      '12 AM', '3 AM', '6 AM', '9 AM', '12 PM', '3 PM', '6 PM', '9 PM', '12 AM'
+    ];
+    
+    // Different energy patterns based on chronotype
+    const energyPatterns = {
+      morning: [15, 10, 30, 85, 70, 55, 40, 30, 15],
+      intermediate: [10, 5, 40, 70, 65, 75, 60, 40, 10],
+      evening: [20, 10, 25, 50, 65, 80, 85, 70, 20]
+    };
+    
+    const pattern = energyPatterns[chronotype] || energyPatterns.intermediate;
+    
+    // Notes for specific times
+    const timeNotes = {
+      morning: {
+        '6 AM': 'Natural wake-up',
+        '9 AM': 'Peak performance',
+        '3 PM': 'Afternoon dip',
+        '9 PM': 'Ready for sleep'
+      },
+      intermediate: {
+        '6 AM': 'Waking up',
+        '3 PM': 'Second peak',
+        '9 PM': 'Starting to wind down'
+      },
+      evening: {
+        '9 AM': 'Still warming up',
+        '3 PM': 'Hitting stride',
+        '6 PM': 'Peak performance',
+        '3 AM': 'Natural sleep period'
+      }
+    };
+    
+    const notes = timeNotes[chronotype] || {};
+    
+    return timePoints.map((time, index) => ({
+      time,
+      label: time,
+      energy: pattern[index],
+      note: notes[time] || null,
+      optimalActivity: getOptimalActivity(time, chronotype, pattern[index])
+    }));
+  };
+
+// Analyze how well scheduled activities align with circadian rhythm
+const analyzeCircadianAlignment = (circadianData, scheduledActivities) => {
+    if (!circadianData || !scheduledActivities) return 'unknown';
+    
+    let alignmentScore = 0;
+    const relevantActivities = scheduledActivities.filter(
+      activity => activity.activity !== 'Sleep' && activity.intensity > 0
+    );
+    
+    if (relevantActivities.length === 0) return 'unknown';
+    
+    // Go through each scheduled activity and check alignment
+    relevantActivities.forEach(activity => {
+      // Find matching time slot in circadian data
+      const timeSlot = circadianData.find(slot => slot.time === activity.time);
+      if (!timeSlot) return;
+      
+      // High-intensity activities during high-energy periods = good alignment
+      if (activity.intensity > 70 && timeSlot.energy > 70) {
+        alignmentScore += 2;
+      } 
+      // High-intensity activities during low-energy periods = poor alignment
+      else if (activity.intensity > 70 && timeSlot.energy < 40) {
+        alignmentScore -= 2;
+      }
+      // Medium activities well matched
+      else if (activity.intensity >= 40 && activity.intensity <= 70 && 
+               timeSlot.energy >= 40 && timeSlot.energy <= 70) {
+        alignmentScore += 1;
+      }
+      // Recovery activities during low-energy periods = good alignment
+      else if (activity.intensity < 40 && timeSlot.energy < 40) {
+        alignmentScore += 1;
+      }
+    });
+    
+    // Determine overall alignment status
+    const normalizedScore = alignmentScore / relevantActivities.length;
+    
+    if (normalizedScore > 0.5) return 'optimal';
+    if (normalizedScore >= -0.5) return 'moderate';
+    return 'misaligned';
+  };
   
-  // Mock initial data fetch when component mounts
-  useEffect(() => {
-    // In a real app, this would call fetchData()
-    // For this example, we'll use the initial state
+// Initialize circadian data when component mounts
+useEffect(() => {
+    // Generate initial circadian data based on chronotype
+    const initialCircadianData = generateCircadianData(state.userChronotype);
+    
+    // Set up current time
+    const currentTime = new Date();
+    
+    // Analyze alignment between circadian rhythm and scheduled activities
+    const alignmentStatus = analyzeCircadianAlignment(
+      initialCircadianData,
+      state.scheduledActivities
+    );
+    
+    // Update state with initial values
+    dispatch({
+      type: ActionTypes.FETCH_DATA_SUCCESS,
+      payload: {
+        circadianData: initialCircadianData,
+        currentTime,
+        circadianAlignment: alignmentStatus
+      }
+    });
+    
+    // Update current time every minute
+    const timer = setInterval(() => {
+      dispatch({
+        type: ActionTypes.FETCH_DATA_SUCCESS,
+        payload: { currentTime: new Date() }
+      });
+    }, 60000);
+    
+    return () => clearInterval(timer);
   }, []);
   
   return (

@@ -103,44 +103,10 @@ const CognitivePerformancePanel = () => {
               </p>
             </div>
           </div>
-          
-          {/* Recommendations */}
-          <div className="mt-3 p-3 border rounded-lg bg-indigo-50">
-            <div className="flex items-center gap-2 mb-2">
-              <BookOpen size={16} className="text-indigo-600" />
-              <span className="text-sm font-medium">Cognitive Insight</span>
-            </div>
-            <p className="text-sm">
-              Your cognitive performance is currently at <span className="font-bold">{currentScore}%</span>. 
-              For best results, schedule critical thinking tasks between <span className="font-bold">{optimalTime.time}</span>, 
-              when your mental sharpness typically peaks.
-              {currentScore < 60 && " Consider a short break or light exercise to refresh your mental energy."}
-            </p>
-          </div>
         </>
       ) : (
         <CognitiveForecastPanel />
       )}
-      
-      {/* Footer with switching suggestion */}
-      <div className="flex justify-center mt-4 text-xs text-gray-500">
-        <button 
-          className="flex items-center hover:text-indigo-600"
-          onClick={() => setViewMode(viewMode === 'current' ? 'forecast' : 'current')}
-        >
-          {viewMode === 'current' ? (
-            <>
-              <Calendar size={14} className="mr-1" />
-              <span>View cognitive forecast</span>
-            </>
-          ) : (
-            <>
-              <Clock size={14} className="mr-1" />
-              <span>View current performance</span>
-            </>
-          )}
-        </button>
-      </div>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Heart, Activity, Moon, BarChart2 } from 'lucide-react';
 import { useDigitalTwin } from '../../hooks/useDigitalTwin';
+import CircadianFitnessScore from '../simulation/CircadianFitnessScore';
 
 const MetricsPanel = () => {
   const { 
@@ -78,6 +79,7 @@ const MetricsPanel = () => {
           ></div>
         </div>
       </div>
+      <CircadianFitnessScore />
     </div>
   );
 };

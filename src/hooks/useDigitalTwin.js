@@ -24,7 +24,15 @@ export const useDigitalTwin = () => {
     cognitiveSimulation, 
     updateSimulation,
     addToCalendar,
-    updateCognitiveSimulation
+    updateCognitiveSimulation,
+    userChronotype,
+    circadianAlignment,
+    circadianData,
+    scheduledActivities,
+    currentTime,
+    updateChronotype,
+    updateScheduledActivity,
+    analyzeAlignment
   } = context;
 
 // Add function to analyze short-term cognitive projection (next 7 days)
@@ -45,13 +53,11 @@ const analyzeShortTermForecast = () => {
   // Identify key impact factors
   const averageSleepImpact = sevenDayData.reduce((sum, day) => sum + day.sleepImpact, 0) / sevenDayData.length;
   const averageRecoveryImpact = sevenDayData.reduce((sum, day) => sum + day.recoveryImpact, 0) / sevenDayData.length;
-  const averageNutritionImpact = sevenDayData.reduce((sum, day) => sum + day.nutritionImpact, 0) / sevenDayData.length;
   
   // Determine top factor
   const impacts = [
     { name: 'Sleep', value: averageSleepImpact },
     { name: 'Recovery', value: averageRecoveryImpact },
-    { name: 'Nutrition', value: averageNutritionImpact }
   ];
   
   const topFactor = impacts.sort((a, b) => b.value - a.value)[0];
@@ -64,26 +70,6 @@ const analyzeShortTermForecast = () => {
     worstDay,
     isPeakAhead: bestDay.day > 0,
     topFactor
-  };
-};
-
-// Add function to analyze long-term cognitive projection (next 30 days)
-const analyzeLongTermForecast = () => {
-  // In a real implementation, this would analyze the full 30 days of forecast data
-  // For now, we'll just extend the 7-day analysis
-  
-  const shortTerm = analyzeShortTermForecast();
-  if (!shortTerm) return null;
-  
-  // Extrapolate the trend for longer term
-  const projectedImprovement = shortTerm.improvementRate * 4; // Simplified 30-day projection
-  
-  return {
-    ...shortTerm,
-    projectedImprovement: projectedImprovement.toFixed(1),
-    sustainabilityRisk: projectedImprovement > 50 ? 'High' : projectedImprovement > 25 ? 'Moderate' : 'Low',
-    estimatedPeak: Math.min(100, Math.round(shortTerm.endPerformance + (shortTerm.endPerformance - shortTerm.startPerformance))),
-    timeToOptimal: Math.ceil((85 - shortTerm.startPerformance) / ((shortTerm.endPerformance - shortTerm.startPerformance) / 7))
   };
 };
 
@@ -181,7 +167,6 @@ const analyzeLongTermForecast = () => {
     recoveryProjection,
     recommendedActions: getRecommendedActions(),
     shortTermForecast: analyzeShortTermForecast(),
-    longTermForecast: analyzeLongTermForecast(),
     
     // Actions
     handleSleepChange,

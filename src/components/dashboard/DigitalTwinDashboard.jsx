@@ -6,21 +6,13 @@ import RecoveryChart from '../simulation/RecoveryChart';
 import CognitivePerformancePanel from '../simulation/CognitivePerformancePanel';
 import AdaptiveSuggestions from '../recommendations/AdaptiveSuggestions';
 import { DigitalTwinProvider } from '../../context/DigitalTwinContext';
+import CircadianRhythmPanel from '../simulation/CircadianRhythmPanel';
 
 const DigitalTwinDashboard = () => {
   return (
     <DigitalTwinProvider>
       <div className="bg-gray-100 w-full p-4 rounded-lg font-sans text-gray-800">
         <div className="flex flex-col gap-4">
-          {/* Header */}
-          <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow">
-            <h1 className="text-2xl font-bold">Athlete Digital Twin</h1>
-            <div className="flex gap-2">
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-md">Sync Data</button>
-              <button className="px-4 py-2 border border-gray-300 rounded-md">Settings</button>
-            </div>
-          </div>
-          
           {/* Main content area */}
           <div className="flex gap-4">
             {/* Left panel - Avatar & Stats */}
@@ -34,15 +26,21 @@ const DigitalTwinDashboard = () => {
             
             {/* Center panels - Simulations & Projections */}
             <div className="w-2/4 flex flex-col gap-4">
+
+              {/* Cognitive performance panel */}
+              <div className="bg-white p-4 rounded-lg shadow">
+                <CognitivePerformancePanel />
+              </div>
+
               {/* Physical recovery panel */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <SimulationControls />
                 <RecoveryChart />
               </div>
               
-              {/* Cognitive performance panel */}
+              {/* Circadian rhythm panel */}
               <div className="bg-white p-4 rounded-lg shadow">
-                <CognitivePerformancePanel />
+                <CircadianRhythmPanel />
               </div>
             </div>
             
