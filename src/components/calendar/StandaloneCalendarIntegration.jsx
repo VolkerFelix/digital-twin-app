@@ -49,9 +49,6 @@ const StandaloneCalendarIntegration = () => {
       ...prev,
       [intervention.id]: true
     }));
-    
-    // You could add additional actions here like syncing with a calendar service
-    console.log(`Added to calendar: ${intervention.title}`);
   };
   
   const getEventCount = () => {
@@ -59,8 +56,8 @@ const StandaloneCalendarIntegration = () => {
   };
 
   return (
-    <div className="w-full bg-white p-4 rounded-lg shadow">
-      <div className="flex justify-between items-center mb-4">
+    <div className="w-full">
+      <div className="flex justify-between items-center mb-3">
         <div className="flex items-center">
           <Calendar size={18} className="text-indigo-600 mr-2" />
           <h2 className="text-lg font-semibold">Performance Interventions</h2>
@@ -88,21 +85,19 @@ const StandaloneCalendarIntegration = () => {
         </div>
         
         {showInfo && (
-          <div className="mt-2 p-3 bg-indigo-50 rounded-lg text-xs text-indigo-800">
-            These interventions are tailored based on your digital twin model and are projected 
-            to increase your cognitive performance from 62% to 85-91% with 78% confidence. The recommendations 
-            account for your circadian rhythm, historical performance patterns, and current readiness metrics.
+          <div className="mt-2 p-2 bg-indigo-50 rounded-lg text-xs text-indigo-800">
+            These interventions are tailored to increase your cognitive performance from 62% to 85-91% with 78% confidence.
           </div>
         )}
       </div>
       
-      <div className="space-y-3">
+      <div className="space-y-2 max-h-64 overflow-y-auto pr-1">
         {recommendedInterventions.map(intervention => (
           <div 
             key={intervention.id}
-            className={`p-3 border rounded-lg ${intervention.color}`}
+            className={`p-2 border rounded-lg ${intervention.color}`}
           >
-            <div className="flex justify-between mb-2">
+            <div className="flex justify-between mb-1">
               <div className="flex items-center">
                 {intervention.icon}
                 <span className="ml-2 font-medium text-sm">{intervention.title}</span>
@@ -112,7 +107,7 @@ const StandaloneCalendarIntegration = () => {
               </div>
             </div>
             
-            <div className="mb-2">
+            <div className="mb-1">
               <div className="flex items-center text-xs text-gray-600 mb-1">
                 <Clock size={12} className="mr-1" />
                 {intervention.time}
@@ -129,12 +124,12 @@ const StandaloneCalendarIntegration = () => {
                   onClick={() => handleAddToCalendar(intervention)}
                 >
                   <Plus size={12} className="mr-1" />
-                  Add to Calendar
+                  Add
                 </button>
               ) : (
                 <span className="flex items-center px-2 py-1 bg-green-100 text-green-800 rounded-md">
                   <Check size={12} className="mr-1" />
-                  Added to Calendar
+                  Added
                 </span>
               )}
             </div>

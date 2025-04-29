@@ -27,7 +27,6 @@ const DigitalTwinDashboard = () => {
             
             {/* Center panels - Simulations & Projections */}
             <div className="w-2/4 flex flex-col gap-4">
-
               {/* Cognitive performance panel */}
               <div className="bg-white p-4 rounded-lg shadow">
                 <CognitivePerformancePanel />
@@ -45,11 +44,17 @@ const DigitalTwinDashboard = () => {
               </div>
             </div>
             
-            {/* Right panel - AI Companion (replacing Adaptive Suggestions) */}
-            <div className="w-1/4 bg-white p-4 rounded-lg shadow">
-              <AICompanion />
+            {/* Right panel with AI Companion and Calendar separated */}
+            <div className="w-1/4 flex flex-col gap-4">
+              {/* AI Companion section */}
+              <div className="bg-white p-4 rounded-lg shadow">
+                <AICompanion />
+              </div>
 
-              <StandaloneCalendarIntegration />
+              {/* Calendar Integration section - now clearly separated */}
+              <div className="bg-white p-4 rounded-lg shadow">
+                <StandaloneCalendarIntegration />
+              </div>
             </div>
           </div>
         </div>

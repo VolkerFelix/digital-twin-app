@@ -31,8 +31,11 @@ const formatMessageText = (text) => {
   };
 
 const initialText = `Sarah, your cognitive performance is projected at 62% for Thursday's board presentation. 
-    Two targeted interventions can increase this to 85-91% with an estimated 78% confidence level.\n
-    64% of high-performing executives utilize similar protocols before critical presentations. Your historical data indicates these specific interventions align with your peak cognitive performance patterns from Q4 presentations.\nAdditional details available on request. Would you like the detailed protocol for Wednesday's pre-sleep optimization?`;
+    Two targeted interventions can increase this to 85-91% with an estimated 78% confidence level.
+
+64% of high-performing executives utilize similar protocols before critical presentations. Your historical data indicates these specific interventions align with your peak cognitive performance patterns from Q4 presentations.
+
+Additional details available on request. Would you like the detailed protocol for Wednesday's pre-sleep optimization?`;
 
 const AICompanion = () => {
   const digitalTwinContext = useContext(DigitalTwinContext);
@@ -53,8 +56,6 @@ const AICompanion = () => {
     "What's the science behind the strategic nap?",
     "Will these interventions affect my physical training?"
   ]);
-  const [showCalendarIntegration, setShowCalendarIntegration] = useState(false);
-  const [calendarEvents, setCalendarEvents] = useState([]);
   const messagesEndRef = useRef(null);
 
   // Simulate bot response
@@ -65,16 +66,8 @@ const AICompanion = () => {
     setTimeout(() => {
       let response = '';
       
-      // Check for calendar-related requests
-      if (userMessage.toLowerCase().includes('add to calendar') || 
-          userMessage.toLowerCase().includes('schedule nap') ||
-          userMessage.toLowerCase().includes('light exposure') ||
-          userMessage.toLowerCase().includes('interventions')) {
-        setShowCalendarIntegration(true);
-        response = "I've prepared the recommended interventions for you to add to your calendar. You can add them individually using the buttons below:";
-      }
       // Simple pattern matching for demo purposes
-      else if (userMessage.toLowerCase().includes('training today') || 
+      if (userMessage.toLowerCase().includes('training today') || 
           userMessage.toLowerCase().includes('workout') ||
           userMessage.toLowerCase().includes('exercise')) {
         if (readinessScore < 40) {
@@ -97,6 +90,12 @@ const AICompanion = () => {
         } else {
           response = `You're averaging ${sleepData.duration}h of sleep with ${sleepData.quality.toLowerCase()} quality. To optimize recovery, aim for 7-9 hours of quality sleep. Even a 5% improvement in sleep quality can significantly boost performance and recovery.`;
         }
+      } else if (userMessage.toLowerCase().includes('calendar') || 
+                userMessage.toLowerCase().includes('interventions') ||
+                userMessage.toLowerCase().includes('add to calendar') || 
+                userMessage.toLowerCase().includes('schedule nap') ||
+                userMessage.toLowerCase().includes('light exposure')) {
+        response = "I've prepared the recommended interventions for you. You can find them in the Performance Interventions panel below with options to add them to your calendar.";
       } else {
         response = "I'm here to help you optimize your training and recovery. Could you clarify what specific aspect you'd like guidance on? I can analyze your readiness, recommend recovery strategies, or help with training adjustments.";
       }
@@ -199,8 +198,13 @@ const AICompanion = () => {
     }
   };
 
+  // Scroll to bottom on new messages
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
+
   return (
-    <div className="w-full h-full flex flex-col" style={{ height: '900px' }}>
+    <div className="w-full flex flex-col h-150"> {/* Fixed height of 24rem (384px) */}
       <div className="px-1 py-2 border-b flex justify-between items-center">
         <div className="flex items-center">
           <Bot size={18} className="text-indigo-600 mr-2" />
@@ -243,9 +247,6 @@ const AICompanion = () => {
                     <button className="hover:text-indigo-600 transition-colors">
                       <ThumbsDown size={12} />
                     </button>
-                    <button className="hover:text-indigo-600 transition-colors">
-                      <MoreHorizontal size={12} />
-                    </button>
                   </div>
                 )}
               </div>
@@ -275,7 +276,6 @@ const AICompanion = () => {
       
       {/* Suggested questions */}
       <div className="px-3 py-2 border-t border-gray-100">
-        <p className="text-xs text-gray-500 mb-2">Suggested questions:</p>
         <div className="flex flex-wrap gap-2">
           {suggestedQuestions.map((question, index) => (
             <button 
@@ -290,12 +290,12 @@ const AICompanion = () => {
       </div>
       
       {/* Input box */}
-      <div className="p-3 border-t flex items-end gap-2">
+      <div className="p-2 border-t flex items-end gap-2">
         <div className="flex-grow relative">
           <textarea
             className="w-full p-2 pr-10 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 focus:border-indigo-500 resize-none"
             placeholder="Ask something about your training or recovery..."
-            rows={2}
+            rows={1}
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyPress}
